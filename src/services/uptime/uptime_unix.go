@@ -16,7 +16,7 @@ import (
 )
 
 
-func parseSecUsec(input string) (int64, error) {
+func parseSecUsec(input string) (float64, error) {
 	startSec := strings.Index(input, "sec =") + len("sec =")
 	endSec := strings.Index(input, ",")
 	secStr := strings.TrimSpace(input[startSec:endSec])
@@ -25,12 +25,12 @@ func parseSecUsec(input string) (int64, error) {
 	endUsec := strings.Index(input, "}")
 	usecStr := strings.TrimSpace(input[startUsec:endUsec])
 
-	sec, err := strconv.ParseInt(secStr, 10, 64)
+	sec, err := strconv.ParseFloat(secStr, 64)
 	if err != nil {
 		return 0, fmt.Errorf("error parsing sec: %v", err)
 	}
 
-	usec, err := strconv.ParseInt(usecStr, 10, 64)
+	usec, err := strconv.ParseFloat(usecStr, 64)
 	if err != nil {
 		return 0, fmt.Errorf("error parsing usec: %v", err)
 	}
@@ -40,27 +40,10 @@ func parseSecUsec(input string) (int64, error) {
 }
 
 func GetSystemUptime() models.Uptime {
-	var uptimeSeconds int64
 
-	if runtime.GOOS == "linux" {
-		data, err := os.ReadFile("/proc/uptime")
-		if err != nil {
-			log.Println(fmt.Errorf("error reading /proc/uptime: %v", err))
-			return models.Uptime{}
-		}
+    if runtime.GOOS == "darwin" {
+		var uptimeSeconds float64
 
-		parts := strings.Fields(string(data))
-		if len(parts) < 1 {
-			log.Println( fmt.Errorf("error: invalid uptime data"))
-			return models.Uptime{}
-		}
-
-		uptimeSeconds, err = strconv.ParseInt(parts[0], 10, 64)
-		if err != nil {
-			log.Println(fmt.Errorf("error converting uptime to float: %v", err))
-			return models.Uptime{}
-		}
-	} else if runtime.GOOS == "darwin" {
 		cmd := exec.Command("sysctl", "-n", "kern.boottime")
 		output, err := cmd.Output()
 		if err != nil {
@@ -75,21 +58,46 @@ func GetSystemUptime() models.Uptime {
 			log.Println(err)
 		}
 
-	} else {
-		log.Println( fmt.Errorf("unsupported OS: %s", runtime.GOOS))
+		currentTimeNano := float64(time.Now().UnixNano())
+
+		uptimeNano := currentTimeNano - uptimeSeconds
+		uptimeDuration := time.Duration(uptimeNano)
+
+
+		days := int(uptimeDuration.Hours()) / 24
+		hours := int(uptimeDuration.Hours()) % 24
+		minutes := int(uptimeDuration.Minutes()) % 60
+		seconds := int(uptimeDuration.Seconds()) % 60
+
+		return models.Uptime{
+			Days:    fmt.Sprintf("%d", days),
+			Hours:   fmt.Sprintf("%d", hours),
+			Minutes: fmt.Sprintf("%d", minutes),
+			Seconds: fmt.Sprintf("%d", seconds),
+		}
+
+	}
+
+	data, err := os.ReadFile("/proc/uptime")
+	if err != nil {
+		log.Println(fmt.Errorf("error reading /proc/uptime: %v", err))
 		return models.Uptime{}
 	}
 
-	currentTimeNano := time.Now().UnixNano()
+	parts := strings.Fields(string(data))
+	if len(parts) < 1 {
+		log.Println( fmt.Errorf("error: invalid uptime data"))
+		return models.Uptime{}
+	}
+		
 
-	uptimeNano := currentTimeNano - uptimeSeconds
-	uptimeDuration := time.Duration(uptimeNano)
+	uptimeSeconds, err := strconv.ParseInt(parts[0], 16, 64)
+	if err != nil {
+		log.Println(fmt.Errorf("error converting uptime to float: %v", err))
+		return models.Uptime{}
+	}
 
-
-	days := int(uptimeDuration.Hours()) / 24
-	hours := int(uptimeDuration.Hours()) % 24
-	minutes := int(uptimeDuration.Minutes()) % 60
-	seconds := int(uptimeDuration.Seconds()) % 60
+	days, hours, minutes, seconds :=  convertSeconds(int64(uptimeSeconds))
 
 	return models.Uptime{
 		Days:    fmt.Sprintf("%d", days),
@@ -97,4 +105,13 @@ func GetSystemUptime() models.Uptime {
 		Minutes: fmt.Sprintf("%d", minutes),
 		Seconds: fmt.Sprintf("%d", seconds),
 	}
+	
+}
+
+func convertSeconds(seconds int64) (int64, int64, int64, int64) {
+	days := seconds / 86400
+	hours := (seconds % 86400) / 3600
+	minutes := (seconds % 3600) / 60
+	seconds = seconds % 60
+	return days, hours, minutes, seconds
 }
