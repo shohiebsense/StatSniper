@@ -91,13 +91,13 @@ func GetSystemUptime() models.Uptime {
 	}
 		
 
-	uptimeSeconds, err := strconv.ParseInt(parts[0], 16, 64)
+	uptimeSeconds, err := strconv.ParseFloat(parts[0], 64)
 	if err != nil {
 		log.Println(fmt.Errorf("error converting uptime to float: %v", err))
 		return models.Uptime{}
 	}
 
-	days, hours, minutes, seconds :=  convertSeconds(int64(uptimeSeconds))
+	days, hours, minutes, seconds :=  convertSeconds(uptimeSeconds)
 
 	return models.Uptime{
 		Days:    fmt.Sprintf("%d", days),
@@ -108,10 +108,11 @@ func GetSystemUptime() models.Uptime {
 	
 }
 
-func convertSeconds(seconds int64) (int64, int64, int64, int64) {
-	days := seconds / 86400
-	hours := (seconds % 86400) / 3600
-	minutes := (seconds % 3600) / 60
-	seconds = seconds % 60
-	return days, hours, minutes, seconds
+func convertSeconds(seconds float64) (int64, int64, int64, int64) {
+	days := int64(seconds / 86400)
+	hours := int64((seconds - float64(days*86400)) / 3600)
+	minutes := int64((seconds - float64(days*86400) - float64(hours*3600)) / 60)
+	remainingSeconds := seconds - float64(days*86400) - float64(hours*3600) - float64(minutes*60)
+
+	return days, hours, minutes, remainingSeconds
 }

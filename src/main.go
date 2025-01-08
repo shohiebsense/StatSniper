@@ -13,6 +13,8 @@ func main() {
 	username := "user"
 	password := "passw"
 
+	log.Println("start")
+
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static", fs))
 	http.HandleFunc("/", authMiddleware(http.HandlerFunc(serveHome), username, password))
