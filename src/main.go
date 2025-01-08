@@ -3,13 +3,15 @@ package main
 import (
 	"StatSniper/services"
 	"encoding/json"
+	"log"
 	"net/http"
-	"os"
+	//"os"
 )
 
 func main() {
-	username := os.Getenv("USERNAME")
-	password := os.Getenv("PASSWORD")
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	username := "user"
+	password := "passw"
 
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static", fs))
@@ -19,7 +21,7 @@ func main() {
 	http.HandleFunc("/api/info", authMiddleware(http.HandlerFunc(serveAPIInfo), username, password))
 	http.HandleFunc("/api/all", authMiddleware(http.HandlerFunc(serveAPIAll), username, password))
 
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":18008", nil)
 }
 
 func authMiddleware(next http.Handler, username, password string) http.HandlerFunc {
