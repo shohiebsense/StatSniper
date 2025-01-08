@@ -1,0 +1,1 @@
+docker run -d  --name statsniper --restart always --network host shohiebsense/statsniper

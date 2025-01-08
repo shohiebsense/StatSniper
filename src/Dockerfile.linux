@@ -37,7 +37,7 @@ COPY index.html /app/
 RUN chmod +x /app/StatSniper
 
 # Expose port 80 to allow external connections to your application
-EXPOSE 80
+EXPOSE 18008
 
 # Specify the command to run your application
 CMD ["/app/StatSniper"]

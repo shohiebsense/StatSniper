@@ -1,0 +1,1 @@
+ docker build -f Dockerfile.linux -t shohiebsense/statsniper . 
