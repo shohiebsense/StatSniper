@@ -62,7 +62,7 @@ func GetSystemUptime() models.Uptime {
 
 		uptimeNano := currentTimeNano - uptimeSeconds
 		uptimeDuration := time.Duration(uptimeNano)
-
+		log.Println(uptimeDuration)
 
 		days := int(uptimeDuration.Hours()) / 24
 		hours := int(uptimeDuration.Hours()) % 24
@@ -108,11 +108,11 @@ func GetSystemUptime() models.Uptime {
 	
 }
 
-func convertSeconds(seconds float64) (int64, int64, int64, int64) {
+func convertSeconds(seconds float64) (int64, int64, int64, int) {
 	days := int64(seconds / 86400)
 	hours := int64((seconds - float64(days*86400)) / 3600)
 	minutes := int64((seconds - float64(days*86400) - float64(hours*3600)) / 60)
 	remainingSeconds := seconds - float64(days*86400) - float64(hours*3600) - float64(minutes*60)
 
-	return days, hours, minutes, remainingSeconds
+	return days, hours, minutes, int(remainingSeconds)
 }
