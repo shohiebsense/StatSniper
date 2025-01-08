@@ -1,33 +1,62 @@
 package processes
 
 import (
-	"fmt"
+	"StatSniper/models"
+	"log"
 	"sort"
 
 	"github.com/shirou/gopsutil/v4/process"
 )
 
-func GetProcess() {
-	processess, _ := process.Processes()
-	sort.Slice(processess, func(i, j int) bool {
-		p1, _ := processess[i].CPUPercent()
-		p2, _ := processess[j].CPUPercent()
-		return p1 > p2
+
+func GetCpuProcessInfo() []models.CpuProcess {
+	processes, err := process.Processes()
+	if err != nil || len(processes) == 0 {
+	
+		log.Println(err)
+		return []models.CpuProcess{}
+	}
+
+	processCPUData := make([]struct {
+		Proc *process.Process
+		CPU  float64
+	}, len(processes))
+
+	for i, proc := range processes {
+		cpuPercent, err := proc.CPUPercent()
+		if err != nil {
+			cpuPercent = 0 
+		}
+		processCPUData[i] = struct {
+			Proc *process.Process
+			CPU  float64
+		}{Proc: proc, CPU: cpuPercent}
+	}
+
+	sort.Slice(processCPUData, func(i, j int) bool {
+		return processCPUData[i].CPU > processCPUData[j].CPU
 	})
 
-	processessRow := ""
-	for i := 0; i < 10; i++ {
-		n, _ := processess[i].Name()
-		cp, _ := processess[i].CPUPercent()
-		rowColor := ""
-		if i%2 == 0 {
-			rowColor = "bg-gray-500"
-		}
-		processessRow += fmt.Sprintf(`
-		<li class="flex justify-between gap-x-4 py-1 rounded-sm %s">
-			<span class="mx-2 p-1">%s (PID %d)</span>
-			<span class="mx-2 p-1">%.2f%% CPU</span>
-		</li>
-		`, rowColor, n, processess[i].Pid, cp)
+	limit := 10
+	if len(processCPUData) < limit {
+		limit = len(processCPUData)
 	}
+
+	cpuProcesses := make([]models.CpuProcess, 0, limit)
+	for i := 0; i < limit; i++ {
+		proc := processCPUData[i].Proc
+		cpu := processCPUData[i].CPU
+		name, err := proc.Name()
+		if err != nil {
+			name = "Unknown" 
+		}
+
+		cpuProcesses = append(cpuProcesses, models.CpuProcess{
+			ProcessName: name,
+			CpuUsage:    cpu,
+			Pid:         proc.Pid,
+		})
+	}
+
+	return cpuProcesses
 }

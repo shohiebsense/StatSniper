@@ -2,6 +2,7 @@ package services
 
 import (
 	"StatSniper/models"
+	"StatSniper/services/processes"
 	"StatSniper/services/systemInfo"
 	"StatSniper/services/systemUsage"
 	"StatSniper/services/uptime"
@@ -24,5 +25,6 @@ func GetAllInfo() models.AllInfo {
 		Usage:      GetSystemUsage(),
 		Uptime:     GetSystemUptime(),
 		SystemInfo: GetSystemInfo(),
+		CpuProcesses: processes.GetCpuProcessInfo(),
 	}
 }

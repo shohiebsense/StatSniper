@@ -43,7 +43,8 @@ type Uptime struct {
 }
 
 type AllInfo struct {
-	Usage      SystemUsage `json:"usage"`
-	Uptime     Uptime      `json:"uptime"`
-	SystemInfo SystemInfo  `json:"systemInfo"`
+	Usage        SystemUsage  `json:"usage"`
+	Uptime       Uptime       `json:"uptime"`
+	SystemInfo   SystemInfo   `json:"systemInfo"`
+	CpuProcesses []CpuProcess `json:"cpuProcesses"`
 }
