@@ -10,8 +10,8 @@ import (
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	username := "user"
-	password := "passw"
+	username := "development"
+	password := "n12A(A4y|&A="
 
 	log.Println("start")
 

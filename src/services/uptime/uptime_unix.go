@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"math"
 )
 
 
@@ -112,7 +113,9 @@ func convertSeconds(seconds float64) (int64, int64, int64, int) {
 	days := int64(seconds / 86400)
 	hours := int64((seconds - float64(days*86400)) / 3600)
 	minutes := int64((seconds - float64(days*86400) - float64(hours*3600)) / 60)
-	remainingSeconds := seconds - float64(days*86400) - float64(hours*3600) - float64(minutes*60)
+	remainingSeconds := math.Round(seconds - float64(days*86400) - float64(hours*3600) - float64(minutes*60))
 
-	return days, hours, minutes, int(remainingSeconds)
+		remainingSecondsInt := int(math.Floor(remainingSeconds + 0.5)) // Adding 0.5 ensures proper rounding
+
+	return days, hours, minutes, int(remainingSecondsInt)
 }
